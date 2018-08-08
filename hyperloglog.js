@@ -1,3 +1,5 @@
+const murmur = require('node-murmurhash');
+
 function compute_alpha_times_bucket_count_squared(bucket_count) {
     return 0.7213 / (1 + 1.079 / bucket_count) * bucket_count * bucket_count;
 }
@@ -132,4 +134,13 @@ function HyperLogLog(n) {
 
 module.exports = HyperLogLog;
 
-module.exports.hash = require('murmurhash3').murmur128Sync;
+// Quick hack to remove the murmurhash3 dependency.
+// TODO use a proper 128-bit hash function (farmhash.fingerprint128 not
+// currently implemented, but could implement it?)
+module.exports.hash = input => {
+  const res = new Array(4);
+  for(let i=0; i<=3; i++) {
+    res[i] = murmur(input + i.toString());
+  }
+  return res;
+}
